@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Découverte</title>
+  <style>
+    body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; display:flex;
+           min-height:100vh; align-items:center; justify-content:center; background:#f6f7fb; margin:0; }
+    .card { background:white; border-radius:12px; padding:28px; width:320px; box-shadow:0 8px 30px rgba(20,30,60,0.08); text-align:center; }
+    h1 { font-size:20px; margin:0 0 8px; }
+    p { margin:0 0 16px; color:#444; font-size:14px; }
+    input[type="text"] { width:100%; padding:10px; border-radius:8px; border:1px solid #ddd; font-size:16px; text-align:center; }
+    button { margin-top:12px; width:100%; padding:10px; border-radius:8px; border:none; font-size:16px; cursor:pointer; }
+    .hint { margin-top:12px; color:#888; font-size:12px; }
+    .error { color:#b00020; margin-top:8px; font-size:13px; }
+    .success { margin-top:12px; }
+    iframe { width:100%; height:180px; border-radius:8px; border:0; margin-top:12px; }
+  </style>
+</head>
+<body>
+  <div class="card" role="main" aria-labelledby="title">
+    <h1 id="title">Une petite découverte t'attend</h1>
+    <p>Scanne, entre le code à 4 chiffres trouvé dans l'énigme, et découvre la surprise.</p>
+
+    <label for="code" style="display:none">Code</label>
+    <input id="code" type="text" inputmode="numeric" maxlength="4" placeholder="____" autocomplete="one-time-code" />
+    <button id="submit">Valider</button>
+
+    <div class="error" id="error" aria-live="polite" style="display:none"></div>
+    <div class="success" id="success" style="display:none">
+      <p>Bravo — la vidéo est prête :</p>
+      <!-- Option A : redirection -->
+      <!-- <p><a id="goto" href="#" target="_blank" rel="noopener">Ouvrir la vidéo</a></p> -->
+
+      <!-- Option B : intégrer la vidéo directement (si tu as un lien d'embed) -->
+      <div id="videoContainer"></div>
+    </div>
+
+    <div class="hint">Si tu bloques, relis l'énigme laissée dans la boîte.</div>
+  </div>
+
+<script>
+  // === CONFIGURE ICI ===
+  const SECRET_CODE = "2404";         // <- remplace par ton code 4 chiffres
+  const TARGET_URL  = "https://www.youtube.com/shorts/FCSn0ae22HY"; // <- remplace par le lien vers la vidéo / page
+  const EMBED_IFRAME = false; // true pour afficher la vidéo intégrée (si lien embed autorisé)
+  // ======================
+
+  const codeInput = document.getElementById('code');
+  const submitBtn = document.getElementById('submit');
+  const errorDiv = document.getElementById('error');
+  const successDiv = document.getElementById('success');
+  const videoContainer = document.getElementById('videoContainer');
+
+  function normalize(s){ return String(s).trim(); }
+
+  submitBtn.addEventListener('click', tryCode);
+  codeInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') tryCode(); });
+
+  function tryCode(){
+    const val = normalize(codeInput.value);
+    errorDiv.style.display = 'none';
+    if(!/^\d{4}$/.test(val)){
+      errorDiv.textContent = 'Entrez un code composé de 4 chiffres.';
+      errorDiv.style.display = 'block';
+      return;
+    }
+    if(val === SECRET_CODE){
+      reveal();
+    } else {
+      errorDiv.textContent = 'Code incorrect. Essaie encore.';
+      errorDiv.style.display = 'block';
+      // petit effet temps ou compteur anti-bourrinage possible si tu veux
+    }
+  }
+
+  function reveal(){
+    // Masquer l'interface de saisie
+    codeInput.style.display = 'none';
+    submitBtn.style.display = 'none';
+    errorDiv.style.display = 'none';
+    successDiv.style.display = 'block';
+
+    if(EMBED_IFRAME){
+      // Si TARGET_URL est une page embed (YouTube embed, Vimeo, ou page web qui sert la vidéo en embed)
+      const iframe = document.createElement('iframe');
+      iframe.src = TARGET_URL;
+      iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen";
+      videoContainer.appendChild(iframe);
+    } else {
+      // Redirection ou lien
+      const a = document.createElement('a');
+      a.href = TARGET_URL;
+      a.target = "_blank";
+      a.rel = "noopener";
+      a.textContent = "Ouvrir la vidéo";
+      a.style.display = 'inline-block';
+      a.style.marginTop = '8px';
+      a.style.padding = '10px 14px';
+      a.style.borderRadius = '8px';
+      a.style.background = '#0b76ef';
+      a.style.color = 'white';
+      a.style.textDecoration = 'none';
+      videoContainer.appendChild(a);
+    }
+  }
+</script>
+</body>
+</html>
