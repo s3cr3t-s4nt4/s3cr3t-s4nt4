@@ -21,8 +21,11 @@
 <body>
   <div class="card" role="main" aria-labelledby="title">
     <h1 id="title">Une petite découverte t'attend</h1>
-    <p>Scanne, entre le code à 4 chiffres trouvé dans l'énigme, et découvre la surprise.</p>
+    <p>Scanne, entre ton prénom et le code à 4 chiffres trouvé dans l'énigme, et découvre la surprise.</p>
 
+    <label for="name" style="display:none">Prénom</label>
+    <input id="name" type="text" placeholder="Ton prénom" autocomplete="given-name" style="margin-bottom:12px;" />
+    
     <label for="code" style="display:none">Code</label>
     <input id="code" type="text" inputmode="numeric" maxlength="4" placeholder="____" autocomplete="one-time-code" />
     <button id="submit">Valider</button>
@@ -43,10 +46,12 @@
 <script>
   // === CONFIGURE ICI ===
   const SECRET_CODE = "2404";         // <- remplace par ton code 4 chiffres
+  const ALLOWED_NAME = "meganne";     // <- le prénom autorisé (sera comparé en minuscules, sans accents)
   const TARGET_URL  = "https://drive.google.com/file/d/1bDKLq9fu16ON5DpUY_6XB1Ezsodiwkw6/view?usp=sharing"; // <- remplace par le lien vers la vidéo / page
   const EMBED_IFRAME = false; // true pour afficher la vidéo intégrée (si lien embed autorisé)
   // ======================
 
+  const nameInput = document.getElementById('name');
   const codeInput = document.getElementById('code');
   const submitBtn = document.getElementById('submit');
   const errorDiv = document.getElementById('error');
@@ -54,29 +59,52 @@
   const videoContainer = document.getElementById('videoContainer');
 
   function normalize(s){ return String(s).trim(); }
+  
+  function normalizeAccents(s){ 
+    return s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+  }
 
   submitBtn.addEventListener('click', tryCode);
+  nameInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') tryCode(); });
   codeInput.addEventListener('keydown', (e)=> { if(e.key === 'Enter') tryCode(); });
 
   function tryCode(){
-    const val = normalize(codeInput.value);
+    const nameVal = normalize(nameInput.value);
+    const codeVal = normalize(codeInput.value);
     errorDiv.style.display = 'none';
-    if(!/^\d{4}$/.test(val)){
+    
+    // Vérifier le prénom
+    if(!nameVal){
+      errorDiv.textContent = 'Entre ton prénom.';
+      errorDiv.style.display = 'block';
+      return;
+    }
+    
+    const normalizedName = normalizeAccents(nameVal);
+    if(normalizedName !== ALLOWED_NAME){
+      errorDiv.textContent = 'Prénom incorrect. Cette surprise n\'est pas pour toi !';
+      errorDiv.style.display = 'block';
+      return;
+    }
+    
+    // Vérifier le code
+    if(!/^\d{4}$/.test(codeVal)){
       errorDiv.textContent = 'Entrez un code composé de 4 chiffres.';
       errorDiv.style.display = 'block';
       return;
     }
-    if(val === SECRET_CODE){
+    
+    if(codeVal === SECRET_CODE){
       reveal();
     } else {
       errorDiv.textContent = 'Code incorrect. Essaie encore.';
       errorDiv.style.display = 'block';
-      // petit effet temps ou compteur anti-bourrinage possible si tu veux
     }
   }
 
   function reveal(){
     // Masquer l'interface de saisie
+    nameInput.style.display = 'none';
     codeInput.style.display = 'none';
     submitBtn.style.display = 'none';
     errorDiv.style.display = 'none';
@@ -94,7 +122,7 @@
       a.href = TARGET_URL;
       a.target = "_blank";
       a.rel = "noopener";
-      a.textContent = "Ouvrir la vidéo";
+      a.textContent = "Ouvrir la surprise";
       a.style.display = 'inline-block';
       a.style.marginTop = '8px';
       a.style.padding = '10px 14px';
