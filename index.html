@@ -21,18 +21,18 @@
 <body>
   <div class="card" role="main" aria-labelledby="title">
     <h1 id="title">Une petite découverte t'attend</h1>
-    <p>Entre ton prénom et le code à 4 chiffres trouvé dans l'énigme, et découvre la surprise.</p>
+    <p>Scanne, entre le code à 4 chiffres trouvé dans l'énigme et ton prénom, et découvre la surprise.</p>
 
-    <label for="name" style="display:none">Prénom</label>
-    <input id="name" type="text" placeholder="Ton prénom" autocomplete="given-name" style="margin-bottom:12px;" />
-    
     <label for="code" style="display:none">Code</label>
-    <input id="code" type="text" inputmode="numeric" maxlength="4" placeholder="____" autocomplete="one-time-code" />
+    <input id="code" type="text" inputmode="numeric" maxlength="4" placeholder="____" autocomplete="one-time-code" style="margin-bottom:12px;" />
+    
+    <label for="name" style="display:none">Prénom</label>
+    <input id="name" type="text" placeholder="Ton prénom" autocomplete="given-name" />
     <button id="submit">Valider</button>
 
     <div class="error" id="error" aria-live="polite" style="display:none"></div>
     <div class="success" id="success" style="display:none">
-      <p>Bravo — la surprise t'attend :</p>
+      <p>Bravo — la vidéo est prête :</p>
       <!-- Option A : redirection -->
       <!-- <p><a id="goto" href="#" target="_blank" rel="noopener">Ouvrir la vidéo</a></p> -->
 
@@ -73,7 +73,20 @@
     const codeVal = normalize(codeInput.value);
     errorDiv.style.display = 'none';
     
-    // Vérifier le prénom
+    // Vérifier le code en premier
+    if(!/^\d{4}$/.test(codeVal)){
+      errorDiv.textContent = 'Entrez un code composé de 4 chiffres.';
+      errorDiv.style.display = 'block';
+      return;
+    }
+    
+    if(codeVal !== SECRET_CODE){
+      errorDiv.textContent = 'Code incorrect. Essaie encore.';
+      errorDiv.style.display = 'block';
+      return;
+    }
+    
+    // Puis vérifier le prénom
     if(!nameVal){
       errorDiv.textContent = 'Entre ton prénom.';
       errorDiv.style.display = 'block';
@@ -87,19 +100,8 @@
       return;
     }
     
-    // Vérifier le code
-    if(!/^\d{4}$/.test(codeVal)){
-      errorDiv.textContent = 'Entrez un code composé de 4 chiffres.';
-      errorDiv.style.display = 'block';
-      return;
-    }
-    
-    if(codeVal === SECRET_CODE){
-      reveal();
-    } else {
-      errorDiv.textContent = 'Code incorrect. Essaie encore.';
-      errorDiv.style.display = 'block';
-    }
+    // Si tout est correct, révéler la surprise
+    reveal();
   }
 
   function reveal(){
